@@ -1,0 +1,31 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: aap-migration-ai
+  namespace: aap-migration-ai
+  labels:
+    app.kubernetes.io/part-of: aap-migration-copilot
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: aap-migration-ai
+  namespace: aap-migration-ai
+  labels:
+    app.kubernetes.io/part-of: aap-migration-copilot
+spec:
+  runPolicy: Serial
+  source:
+    type: Binary
+    binary: {}
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Containerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: aap-migration-ai:latest
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {memory: 4Gi}

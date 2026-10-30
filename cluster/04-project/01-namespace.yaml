@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aap-migration-ai
+  labels:
+    opendatahub.io/dashboard: "true"
+    app.kubernetes.io/part-of: aap-migration-copilot
+  annotations:
+    openshift.io/display-name: AAP Migration AI
+    openshift.io/description: AAP 2.4 to 2.5 / 2.6 / 2.7 migration with OpenShift AI (agent, pipelines, risk model, CasC)

@@ -1,0 +1,37 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: qwen3-8b
+  namespace: aap-migration-ai
+  labels:
+    opendatahub.io/dashboard: "true"
+  annotations:
+    openshift.io/display-name: Qwen3-8B FP8 (migration agent)
+    serving.kserve.io/deploymentMode: RawDeployment
+    opendatahub.io/hardware-profile-name: nvidia-gpu
+    opendatahub.io/hardware-profile-namespace: redhat-ods-applications
+spec:
+  predictor:
+    minReplicas: 1
+    maxReplicas: 1
+    nodeSelector:
+      nvidia.com/gpu.present: "true"
+    model:
+      runtime: vllm-cuda-runtime
+      modelFormat:
+        name: vLLM
+      storageUri: oci://registry.redhat.io/rhelai1/modelcar-qwen3-8b-fp8-dynamic:1.5
+      args:
+        - --max-model-len=16384
+        - --gpu-memory-utilization=0.90
+        - --enable-auto-tool-choice
+        - --tool-call-parser=hermes
+      resources:
+        requests:
+          cpu: "4"
+          memory: 16Gi
+          nvidia.com/gpu: "1"
+        limits:
+          cpu: "7"
+          memory: 28Gi
+          nvidia.com/gpu: "1"

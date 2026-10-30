@@ -1,0 +1,134 @@
+components:
+  comp-predict-op:
+    executorLabel: exec-predict-op
+    inputDefinitions:
+      parameters:
+        migration_id:
+          parameterType: STRING
+        refresh_export:
+          parameterType: BOOLEAN
+    outputDefinitions:
+      artifacts:
+        ai_report:
+          artifactType:
+            schemaTitle: system.HTML
+            schemaVersion: 0.0.1
+deploymentSpec:
+  executors:
+    exec-predict-op:
+      container:
+        args:
+        - predict
+        - --migration-id
+        - '{{$.inputs.parameters[''migration_id'']}}'
+        - --refresh-export
+        - '{{$.inputs.parameters[''refresh_export'']}}'
+        - --out-html
+        - '{{$.outputs.artifacts[''ai_report''].path}}'
+        command:
+        - migration-ai
+        image: image-registry.openshift-image-registry.svc:5000/aap-migration-ai/aap-migration-ai:latest
+        resources:
+          cpuRequest: 0.5
+          memoryLimit: 4.294967296
+          memoryRequest: 1.073741824
+          resourceCpuRequest: 500m
+          resourceMemoryLimit: 4Gi
+          resourceMemoryRequest: 1Gi
+pipelineInfo:
+  description: 'AFTER migration: AI readiness report (enhanced-report style) for the
+    next AAP 2.4 to migrate.'
+  name: aap-migration-predict
+root:
+  dag:
+    tasks:
+      predict-op:
+        cachingOptions: {}
+        componentRef:
+          name: comp-predict-op
+        inputs:
+          parameters:
+            migration_id:
+              componentInputParameter: migration_id
+            refresh_export:
+              componentInputParameter: refresh_export
+        taskInfo:
+          name: AI readiness report
+  inputDefinitions:
+    parameters:
+      migration_id:
+        defaultValue: next-migration
+        isOptional: true
+        parameterType: STRING
+      refresh_export:
+        defaultValue: true
+        isOptional: true
+        parameterType: BOOLEAN
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.14.3
+---
+platforms:
+  kubernetes:
+    deploymentSpec:
+      executors:
+        exec-predict-op:
+          configMapAsEnv:
+          - configMapName: migration-ai-config
+            configMapNameParameter:
+              runtimeValue:
+                constant: migration-ai-config
+            keyToEnv:
+            - configMapKey: LLM_BASE_URL
+              envVar: LLM_BASE_URL
+            - configMapKey: LLM_MODEL
+              envVar: LLM_MODEL
+            - configMapKey: LLM_TEMPERATURE
+              envVar: LLM_TEMPERATURE
+            - configMapKey: LLM_MAX_TOKENS
+              envVar: LLM_MAX_TOKENS
+            - configMapKey: LLM_EXTRA_BODY
+              envVar: LLM_EXTRA_BODY
+            - configMapKey: LLM_VERIFY_TLS
+              envVar: LLM_VERIFY_TLS
+            - configMapKey: LLM_TIMEOUT
+              envVar: LLM_TIMEOUT
+            - configMapKey: MIGRATIONS_PREFIX
+              envVar: MIGRATIONS_PREFIX
+            - configMapKey: MODELS_PREFIX
+              envVar: MODELS_PREFIX
+            - configMapKey: AWS_S3_VERIFY_TLS
+              envVar: AWS_S3_VERIFY_TLS
+          emptyDirMounts:
+          - mountPath: /work
+            volumeName: work
+          imagePullPolicy: Always
+          secretAsEnv:
+          - keyToEnv:
+            - envVar: AWS_ACCESS_KEY_ID
+              secretKey: AWS_ACCESS_KEY_ID
+            - envVar: AWS_SECRET_ACCESS_KEY
+              secretKey: AWS_SECRET_ACCESS_KEY
+            - envVar: AWS_S3_ENDPOINT
+              secretKey: AWS_S3_ENDPOINT
+            - envVar: AWS_S3_BUCKET
+              secretKey: AWS_S3_BUCKET
+            - envVar: AWS_DEFAULT_REGION
+              secretKey: AWS_DEFAULT_REGION
+            secretName: aap-migration-data
+            secretNameParameter:
+              runtimeValue:
+                constant: aap-migration-data
+          - keyToEnv:
+            - envVar: LLM_API_KEY
+              secretKey: LLM_API_KEY
+            secretName: migration-ai-llm
+            secretNameParameter:
+              runtimeValue:
+                constant: migration-ai-llm
+          secretAsVolume:
+          - mountPath: /etc/aap-bridge
+            optional: false
+            secretName: aap-bridge-env
+            secretNameParameter:
+              runtimeValue:
+                constant: aap-bridge-env

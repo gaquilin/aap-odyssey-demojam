@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: migration-copilot-pipelines
+  namespace: aap-migration-ai
+rules:
+  - apiGroups: ["datasciencepipelinesapplications.opendatahub.io"]
+    resources: ["datasciencepipelinesapplications/api"]
+    resourceNames: ["dspa"]
+    verbs: ["get", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: migration-copilot-pipelines
+  namespace: aap-migration-ai
+subjects:
+  - kind: ServiceAccount
+    name: migration-copilot
+    namespace: aap-migration-ai
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: migration-copilot-pipelines

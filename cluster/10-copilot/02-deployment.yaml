@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: migration-copilot
+  namespace: aap-migration-ai
+  labels:
+    app: migration-copilot
+    app.kubernetes.io/part-of: aap-migration-copilot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: migration-copilot
+  template:
+    metadata:
+      labels:
+        app: migration-copilot
+    spec:
+      serviceAccountName: migration-copilot
+      containers:
+        - name: copilot
+          image: image-registry.openshift-image-registry.svc:5000/aap-migration-ai/aap-migration-ai:latest
+          imagePullPolicy: Always
+          command: ["migration-ai", "serve", "--port", "8080"]
+          env:
+            - name: COPILOT_DATA_DIR
+              value: /data
+            - name: COPILOT_MIGRATION_ID
+              value: ""
+            - name: COPILOT_SCANS_ENABLED
+              value: "true"
+            - name: PIPELINE_READINESS_NAME
+              value: "AAP migration - during migration (plan, run, collect)"
+            - name: PIPELINE_PREDICT_NAME
+              value: "AAP migration - predict next migration"
+            - name: PIPELINE_TRAIN_NAME
+              value: "AAP migration - train risk model"
+          envFrom:
+            - secretRef:
+                name: aap-migration-data
+            - configMapRef:
+                name: migration-ai-config
+            - secretRef:
+                name: migration-ai-llm
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8080}
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {memory: 3Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities: {drop: [ALL]}
+            seccompProfile: {type: RuntimeDefault}
+          volumeMounts:
+            - {name: data, mountPath: /data}
+            - {name: aap-env, mountPath: /etc/aap-bridge, readOnly: true}
+        - name: oauth-proxy
+          image: image-registry.openshift-image-registry.svc:5000/openshift/oauth-proxy:v4.4
+          args:
+            - --https-address=:8443
+            - --provider=openshift
+            - --openshift-service-account=migration-copilot
+            - --upstream=http://localhost:8080
+            - --upstream-timeout=5m0s
+            - --tls-cert=/etc/tls/private/tls.crt
+            - --tls-key=/etc/tls/private/tls.key
+            - --cookie-secret-file=/etc/proxy/secrets/session_secret
+            - '--openshift-sar={"namespace":"aap-migration-ai","resource":"services","verb":"get"}'
+            - --skip-auth-regex=^/healthz$
+          ports:
+            - containerPort: 8443
+              name: https
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {memory: 256Mi}
+          volumeMounts:
+            - {name: tls, mountPath: /etc/tls/private, readOnly: true}
+            - {name: proxy-secret, mountPath: /etc/proxy/secrets, readOnly: true}
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: aap-env
+          secret:
+            secretName: aap-bridge-env
+        - name: tls
+          secret:
+            secretName: migration-copilot-tls
+        - name: proxy-secret
+          secret:
+            secretName: migration-copilot-proxy

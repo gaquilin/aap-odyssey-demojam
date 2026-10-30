@@ -1,0 +1,25 @@
+FROM registry.access.redhat.com/ubi9/python-312:latest
+
+LABEL io.openshift.tags="ansible,aap,migration,openshift-ai" \
+      org.opencontainers.image.title="aap-migration-ai" \
+      org.opencontainers.image.description="AAP 2.4 to 2.5 / 2.6 / 2.7 migration toolkit with the OpenShift AI layer"
+
+USER 0
+COPY toolkit/ /opt/aap-bridge/
+COPY migration_ai/ /opt/migration-ai/
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir /opt/aap-bridge /opt/migration-ai && \
+    mkdir -p /work /data && \
+    chown -R 1001:0 /opt/aap-bridge /opt/migration-ai /work /data && \
+    chmod -R g+rwX /opt/aap-bridge /work /data
+
+ENV TOOLKIT_DIR=/opt/aap-bridge \
+    AAP_BRIDGE_CONFIG=/opt/aap-bridge/config/config.yaml \
+    TOOLKIT_ENV_FILE=/etc/aap-bridge/.env \
+    WORK_DIR=/work \
+    HOME=/work \
+    PYTHONUNBUFFERED=1
+
+USER 1001
+WORKDIR /work
+CMD ["migration-ai", "--help"]

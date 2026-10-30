@@ -1,0 +1,22 @@
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
+kind: DataSciencePipelinesApplication
+metadata:
+  name: dspa
+  namespace: aap-migration-ai
+spec:
+  dspVersion: v2
+  apiServer:
+    enableSamplePipeline: false
+    enableRoute: true
+    cacheEnabled: false
+  objectStorage:
+    externalStorage:
+      host: s4.aap-migration-ai.svc.cluster.local
+      port: "7480"
+      scheme: http
+      region: us-east-1
+      bucket: pipeline-artifacts
+      s3CredentialsSecret:
+        secretName: pipeline-artifacts
+        accessKey: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY

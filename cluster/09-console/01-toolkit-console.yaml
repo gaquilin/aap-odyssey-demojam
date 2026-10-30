@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aap-migration-console-work
+  namespace: aap-migration-ai
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aap-migration-console
+  namespace: aap-migration-ai
+  labels:
+    app: aap-migration-console
+    app.kubernetes.io/part-of: aap-migration-copilot
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: aap-migration-console
+  template:
+    metadata:
+      labels:
+        app: aap-migration-console
+    spec:
+      containers:
+        - name: console
+          image: image-registry.openshift-image-registry.svc:5000/aap-migration-ai/aap-migration-ai:latest
+          imagePullPolicy: Always
+          command: ["/bin/bash", "-c", "echo 'toolkit console ready: oc rsh deploy/aap-migration-console'; sleep infinity"]
+          workingDir: /work
+          envFrom:
+            - secretRef:
+                name: aap-migration-data
+            - configMapRef:
+                name: migration-ai-config
+            - secretRef:
+                name: migration-ai-llm
+          resources:
+            requests: {cpu: 250m, memory: 1Gi}
+            limits: {memory: 6Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities: {drop: [ALL]}
+            seccompProfile: {type: RuntimeDefault}
+          volumeMounts:
+            - {name: work, mountPath: /work}
+            - {name: aap-env, mountPath: /etc/aap-bridge, readOnly: true}
+      volumes:
+        - name: work
+          persistentVolumeClaim:
+            claimName: aap-migration-console-work
+        - name: aap-env
+          secret:
+            secretName: aap-bridge-env

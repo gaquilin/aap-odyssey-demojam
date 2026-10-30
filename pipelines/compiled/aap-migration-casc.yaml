@@ -1,0 +1,174 @@
+components:
+  comp-casc-op:
+    executorLabel: exec-casc-op
+    inputDefinitions:
+      parameters:
+        include_hosts:
+          parameterType: BOOLEAN
+        migration_id:
+          parameterType: STRING
+        organization:
+          parameterType: STRING
+        resource_types:
+          parameterType: STRING
+        review:
+          parameterType: BOOLEAN
+        source:
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        casc_readme:
+          artifactType:
+            schemaTitle: system.Markdown
+            schemaVersion: 0.0.1
+deploymentSpec:
+  executors:
+    exec-casc-op:
+      container:
+        args:
+        - casc
+        - --migration-id
+        - '{{$.inputs.parameters[''migration_id'']}}'
+        - --source
+        - '{{$.inputs.parameters[''source'']}}'
+        - --organization
+        - '{{$.inputs.parameters[''organization'']}}'
+        - --resource-types
+        - '{{$.inputs.parameters[''resource_types'']}}'
+        - --include-hosts
+        - '{{$.inputs.parameters[''include_hosts'']}}'
+        - --review
+        - '{{$.inputs.parameters[''review'']}}'
+        - --out-md
+        - '{{$.outputs.artifacts[''casc_readme''].path}}'
+        command:
+        - migration-ai
+        image: image-registry.openshift-image-registry.svc:5000/aap-migration-ai/aap-migration-ai:latest
+        resources:
+          cpuRequest: 0.5
+          memoryLimit: 4.294967296
+          memoryRequest: 1.073741824
+          resourceCpuRequest: 500m
+          resourceMemoryLimit: 4Gi
+          resourceMemoryRequest: 1Gi
+pipelineInfo:
+  description: 'AFTER migration: Configuration as Code of the target AAP in the infra.aap_configuration
+    format.'
+  name: aap-migration-casc
+root:
+  dag:
+    tasks:
+      casc-op:
+        cachingOptions: {}
+        componentRef:
+          name: comp-casc-op
+        inputs:
+          parameters:
+            include_hosts:
+              componentInputParameter: include_hosts
+            migration_id:
+              componentInputParameter: migration_id
+            organization:
+              componentInputParameter: organization
+            resource_types:
+              componentInputParameter: resource_types
+            review:
+              componentInputParameter: review
+            source:
+              componentInputParameter: source
+        taskInfo:
+          name: Configuration as Code
+  inputDefinitions:
+    parameters:
+      include_hosts:
+        defaultValue: false
+        isOptional: true
+        parameterType: BOOLEAN
+      migration_id:
+        defaultValue: aap24-to-aap26
+        isOptional: true
+        parameterType: STRING
+      organization:
+        defaultValue: ''
+        isOptional: true
+        parameterType: STRING
+      resource_types:
+        defaultValue: ''
+        isOptional: true
+        parameterType: STRING
+      review:
+        defaultValue: true
+        isOptional: true
+        parameterType: BOOLEAN
+      source:
+        defaultValue: live
+        isOptional: true
+        parameterType: STRING
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.14.3
+---
+platforms:
+  kubernetes:
+    deploymentSpec:
+      executors:
+        exec-casc-op:
+          configMapAsEnv:
+          - configMapName: migration-ai-config
+            configMapNameParameter:
+              runtimeValue:
+                constant: migration-ai-config
+            keyToEnv:
+            - configMapKey: LLM_BASE_URL
+              envVar: LLM_BASE_URL
+            - configMapKey: LLM_MODEL
+              envVar: LLM_MODEL
+            - configMapKey: LLM_TEMPERATURE
+              envVar: LLM_TEMPERATURE
+            - configMapKey: LLM_MAX_TOKENS
+              envVar: LLM_MAX_TOKENS
+            - configMapKey: LLM_EXTRA_BODY
+              envVar: LLM_EXTRA_BODY
+            - configMapKey: LLM_VERIFY_TLS
+              envVar: LLM_VERIFY_TLS
+            - configMapKey: LLM_TIMEOUT
+              envVar: LLM_TIMEOUT
+            - configMapKey: MIGRATIONS_PREFIX
+              envVar: MIGRATIONS_PREFIX
+            - configMapKey: MODELS_PREFIX
+              envVar: MODELS_PREFIX
+            - configMapKey: AWS_S3_VERIFY_TLS
+              envVar: AWS_S3_VERIFY_TLS
+          emptyDirMounts:
+          - mountPath: /work
+            volumeName: work
+          imagePullPolicy: Always
+          secretAsEnv:
+          - keyToEnv:
+            - envVar: AWS_ACCESS_KEY_ID
+              secretKey: AWS_ACCESS_KEY_ID
+            - envVar: AWS_SECRET_ACCESS_KEY
+              secretKey: AWS_SECRET_ACCESS_KEY
+            - envVar: AWS_S3_ENDPOINT
+              secretKey: AWS_S3_ENDPOINT
+            - envVar: AWS_S3_BUCKET
+              secretKey: AWS_S3_BUCKET
+            - envVar: AWS_DEFAULT_REGION
+              secretKey: AWS_DEFAULT_REGION
+            secretName: aap-migration-data
+            secretNameParameter:
+              runtimeValue:
+                constant: aap-migration-data
+          - keyToEnv:
+            - envVar: LLM_API_KEY
+              secretKey: LLM_API_KEY
+            secretName: migration-ai-llm
+            secretNameParameter:
+              runtimeValue:
+                constant: migration-ai-llm
+          secretAsVolume:
+          - mountPath: /etc/aap-bridge
+            optional: false
+            secretName: aap-bridge-env
+            secretNameParameter:
+              runtimeValue:
+                constant: aap-bridge-env

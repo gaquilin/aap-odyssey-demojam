@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AAP Odyssey</title>
+<link rel="stylesheet" href="static/patternfly/patternfly.min.css">
+<style>
+:root {
+  --bg: var(--pf-t--global--background--color--secondary--default);
+  --surface: var(--pf-t--global--background--color--primary--default);
+  --line: var(--pf-t--global--border--color--default);
+  --muted: var(--pf-t--global--text--color--subtle);
+  --ink: var(--pf-t--global--text--color--regular);
+  --brand: #ee0000;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); font-family: var(--pf-t--global--font--family--body); }
+.masthead { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 10px 24px;
+  background: #151515; color: #fff; }
+.masthead .brand { display: flex; align-items: center; gap: 12px; }
+.masthead .bar { width: 6px; height: 34px; border-radius: 3px; background: var(--brand); }
+.masthead h1 { margin: 0; font-family: var(--pf-t--global--font--family--heading, 'Red Hat Display'); font-size: 1.2rem; font-weight: 600; }
+.masthead .sub { font-size: .8rem; color: #c7c7c7; }
+.masthead .spacer { flex: 1; }
+.masthead .ctl { display: flex; align-items: center; gap: 8px; }
+.masthead label { font-size: .85rem; color: #c7c7c7; }
+.masthead .pf-v6-c-form-control { width: 360px; }
+.layout { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 16px; padding: 16px 24px;
+  flex: 1; min-height: 0; }
+.journey { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.journey .pf-v6-c-card__body { padding-top: 4px; flex: 1; min-height: 0; overflow-y: auto; }
+.step-labels { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.step-detail { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+.pf-v6-c-progress-stepper__step-description { font-size: .82rem; }
+.main { display: flex; flex-direction: column; min-height: 0; gap: 12px; }
+.where .pf-v6-c-alert__description { margin-top: 4px; }
+.where .labels { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chat { flex: 1; overflow-y: auto; min-height: 0; }
+.msg { margin: 0 0 14px; }
+.msg .who { font-size: .78rem; color: var(--muted); margin: 0 0 4px; }
+.msg .body { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+.msg.me .body { background: #e7f1fa; border-color: #b9dafc; }
+.body p { margin: 0 0 8px; } .body p:last-child { margin-bottom: 0; }
+.body ul { list-style: disc; padding-left: 22px; margin: 0 0 8px; }
+.body pre { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow-x: auto; font-size: .82rem; }
+.body code { font-family: var(--pf-t--global--font--family--mono); font-size: .88em; }
+.body table { border-collapse: collapse; margin: 6px 0; font-size: .88rem; }
+.body th, .body td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; vertical-align: top; }
+.body td:first-child { white-space: nowrap; }
+.foot { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; padding-top: 8px;
+  border-top: 1px dashed var(--line); font-size: .82rem; color: var(--muted); }
+.tools { font-size: .78rem; color: var(--muted); margin-top: 6px; }
+.files a { display: inline-block; margin-top: 8px; }
+.empty h2 { margin: 0 0 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.phase { margin: 10px 0 4px; font-weight: 600; font-family: var(--pf-t--global--font--family--heading, 'Red Hat Display'); }
+.report { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.report:last-child { border-bottom: 0; }
+.report a { font-weight: 500; }
+.report .meta { width: 100%; font-size: .78rem; color: var(--muted); font-family: var(--pf-t--global--font--family--mono); }
+.report details { width: 100%; font-size: .85rem; } .report details a { display: block; margin: 2px 0 2px 12px; font-weight: 400; }
+.left { display: flex; flex-direction: column; min-height: 0; }
+.left .pf-v6-c-tabs { margin: 0 16px; }
+.agents { display: flex; flex-direction: column; gap: 10px; }
+.agent { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.agent h3 { margin: 0 0 4px; font-size: .95rem; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.agent p { margin: 0 0 6px; font-size: .85rem; }
+.agent .small { font-size: .78rem; color: var(--muted); margin: 2px 0; }
+details.section > summary.phase { cursor: pointer; list-style: revert; }
+details.section { margin-top: 4px; }
+.agent ul.caps { margin: 4px 0 6px; padding-left: 18px; list-style: disc; color: var(--text, inherit); }
+.agent ul.caps li { display: list-item; }
+.agent ul.caps li { margin: 1px 0; }
+.agent code.tool { font-size: .72rem; color: var(--muted); background: none; padding: 0; }
+.who .pf-v6-c-label { margin-left: 4px; }
+details.activity { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 6px; font-size: .82rem; }
+details.activity summary { cursor: pointer; color: var(--muted); }
+.act { list-style: none; margin: 6px 0 0; padding: 0; }
+.act li { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; padding: 3px 0 3px 10px;
+  border-left: 2px solid var(--line); margin-left: 4px; }
+.act li .arrow { color: var(--muted); }
+.act code { font-size: .78rem; }
+.view { margin-top: 10px; }
+.view table { width: 100%; }
+.upload { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.welcome[hidden] { display: none !important; }
+.welcome { position: relative; margin-bottom: 14px; border-top: 4px solid var(--brand); }
+.welcome .close { position: absolute; top: 8px; right: 8px; }
+.welcome h2 { margin: 0 0 4px; }
+.welcome .lead { margin: 0 0 14px; max-width: 980px; color: var(--muted); }
+.flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px; margin: 0 0 14px; }
+.flow .ph { position: relative; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface); }
+.flow .ph:not(:last-child)::after { content: '→'; position: absolute; right: -18px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: 1.1rem; }
+.flow .ph h3 { margin: 0; font-size: .95rem; font-family: var(--pf-t--global--font--family--heading, 'Red Hat Display'); }
+.flow .ph .range { font-size: .75rem; color: var(--muted); margin-bottom: 6px; }
+.flow ol { margin: 0 0 8px; padding: 0; list-style: none; font-size: .82rem; }
+.flow li { display: flex; gap: 6px; align-items: baseline; padding: 2px 0; }
+.flow li .n { min-width: 18px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.flow li .h { color: #c46100; display: inline-flex; }
+.legend { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--muted); margin: -4px 0 12px; }
+.legend .h { color: #c46100; display: inline-flex; }
+.flow .ag { display: flex; flex-wrap: wrap; gap: 4px; }
+.use { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 14px; align-items: center;
+  border-top: 1px dashed var(--line); padding-top: 12px; font-size: .88rem; }
+.use .n { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: #151515; color: #fff;
+  align-items: center; justify-content: center; font-size: .78rem; margin-right: 6px; }
+@media (max-width: 1300px) {
+  .flow { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .flow .ph::after { display: none; }
+  .use { grid-template-columns: 1fr; }
+  .use .pf-v6-c-button { justify-self: start; }
+}
+.composer { display: flex; gap: 10px; align-items: flex-end; }
+.composer .pf-v6-c-form-control { flex: 1; }
+.composer textarea { min-height: 46px; max-height: 180px; resize: vertical; }
+@media (max-width: 1000px) {
+  body { display: block; }
+  .layout { grid-template-columns: 1fr; padding: 12px 16px; }
+  .masthead .ctl { flex-wrap: wrap; width: 100%; }
+  .journey { max-height: 420px; }
+  .chat { max-height: 60vh; }
+  .masthead { padding: 10px 16px; }
+  .masthead .pf-v6-c-form-control { min-width: 0; width: 100%; }
+}
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="brand"><div class="bar" aria-hidden="true"></div>
+    <div><h1>AAP Odyssey</h1><div class="sub" id="sub">AAP Migration on Red Hat OpenShift AI</div></div></div>
+  <div class="spacer"></div>
+  <div class="ctl">
+    <label for="mig">Migration</label>
+    <span class="pf-v6-c-form-control"><select id="mig" aria-label="Migration"></select>
+      <span class="pf-v6-c-form-control__utilities"><span class="pf-v6-c-form-control__toggle-icon">
+        <svg class="pf-v6-svg" viewBox="0 0 320 512" fill="currentColor" aria-hidden="true" width="1em" height="1em"><path d="M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z"/></svg>
+      </span></span></span>
+    <button class="pf-v6-c-button pf-m-link" type="button" id="how" style="color:#fff"><span class="pf-v6-c-button__text">How it works</span></button>
+    <button class="pf-v6-c-button pf-m-secondary" type="button" id="refresh"><span class="pf-v6-c-button__text">Refresh</span></button>
+    <button class="pf-v6-c-button pf-m-primary" type="button" id="reports"><span class="pf-v6-c-button__text">Reports</span></button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="pf-v6-c-card journey" aria-label="Migration journey and agents">
+    <div class="pf-v6-c-tabs" role="region">
+      <ul class="pf-v6-c-tabs__list" role="tablist">
+        <li class="pf-v6-c-tabs__item pf-m-current" role="presentation"><button type="button" class="pf-v6-c-tabs__link"
+          role="tab" aria-selected="true" data-tab="tab-journey"><span class="pf-v6-c-tabs__item-text">Journey</span></button></li>
+        <li class="pf-v6-c-tabs__item" role="presentation"><button type="button" class="pf-v6-c-tabs__link" role="tab"
+          aria-selected="false" data-tab="tab-agents"><span class="pf-v6-c-tabs__item-text">Agents</span></button></li>
+      </ul>
+    </div>
+    <div class="pf-v6-c-card__body" id="tab-journey">
+      <div class="step-detail" id="journey-sub">Select a migration to see where it is.</div>
+      <ol class="pf-v6-c-progress-stepper pf-m-vertical" role="list" id="stepper"></ol></div>
+    <div class="pf-v6-c-card__body" id="tab-agents" hidden>
+      <div class="step-detail" style="margin-bottom:8px">AAP Odyssey is an orchestrator: it hands every request to the
+        specialist agent that owns it. Each agent has its own tools and permissions; none writes to AAP.</div>
+      <div class="agents" id="agents"></div></div>
+  </aside>
+
+  <section class="main">
+    <div class="where" id="where"></div>
+    <div class="chat" id="chat">
+      <div class="pf-v6-c-card welcome" id="welcome" hidden aria-labelledby="welcome-title"><div class="pf-v6-c-card__body">
+        <button class="pf-v6-c-button pf-m-plain close" type="button" id="welcome-close" aria-label="Close">
+          <span class="pf-v6-c-button__icon"><svg class="pf-v6-svg" viewBox="0 0 352 512" fill="currentColor" aria-hidden="true" width="1em" height="1em"><path d="M242.7 256l100.1-100.1c12.3-12.3 12.3-32.2 0-44.5l-22.2-22.2c-12.3-12.3-32.2-12.3-44.5 0L176 189.3 75.9 89.2c-12.3-12.3-32.2-12.3-44.5 0L9.2 111.5c-12.3 12.3-12.3 32.2 0 44.5L109.3 256 9.2 356.1c-12.3 12.3-12.3 32.2 0 44.5l22.2 22.2c12.3 12.3 32.2 12.3 44.5 0L176 322.7l100.1 100.1c12.3 12.3 32.2 12.3 44.5 0l22.2-22.2c12.3-12.3 12.3-32.2 0-44.5L242.7 256z"/></svg></span></button>
+        <h2 class="pf-v6-c-title pf-m-xl" id="welcome-title">Welcome to AAP Odyssey</h2>
+        <p class="lead">AI-guided migration from Ansible Automation Platform 2.4 to a newer release (2.5, 2.6 or 2.7) on Red Hat OpenShift AI. Six specialist
+          agents follow every migration through 13 stages: they predict what will fail, explain the results and verify the
+          platform. A person decides and starts every change; no agent writes to AAP.</p>
+        <div class="flow" id="flow"></div>
+        <div class="legend" id="legend"></div>
+        <div class="use">
+          <div><span class="n">1</span><strong>Pick a migration</strong> in the <em>Migration</em> menu, or start one with a pre-migration analysis.</div>
+          <div><span class="n">2</span><strong>Follow the journey</strong> on the left: where you are, the owner agent, where a person acts.</div>
+          <div><span class="n">3</span><strong>Ask</strong>: the right agent answers; <em>Agent activity</em> shows how they worked together.</div>
+          <button class="pf-v6-c-button pf-m-primary" type="button" id="welcome-start"><span class="pf-v6-c-button__text">Start</span></button>
+        </div>
+      </div></div>
+      <div class="pf-v6-c-card empty" id="empty"><div class="pf-v6-c-card__body">
+        <h2 class="pf-v6-c-title pf-m-lg">Ask about the selected migration</h2>
+        <p>The journey on the left shows every stage of the migration, the agent that owns it and where a person must act
+          (<em>Human in the loop</em>). Ask anything: AAP Odyssey hands it to the right agent and shows the
+          <em>Agent activity</em> under the answer, then tells you where you are and what comes next.</p>
+      </div></div>
+      <div id="thread"></div>
+    </div>
+    <div class="chips" id="chips">
+          <button class="pf-v6-c-button pf-m-secondary pf-m-small" type="button">What's next?</button>
+          <button class="pf-v6-c-button pf-m-secondary pf-m-small" type="button">Summarize the result</button>
+          <button class="pf-v6-c-button pf-m-secondary pf-m-small" type="button">What will fail and why?</button>
+          <button class="pf-v6-c-button pf-m-secondary pf-m-small" type="button">Scan status</button>
+          <button class="pf-v6-c-button pf-m-secondary pf-m-small" type="button">Show the patch releases of the installed AAP</button>
+          <button class="pf-v6-c-button pf-m-secondary pf-m-small" type="button">Generate the smoke test suite</button>
+    </div>
+    <form class="composer" id="form">
+      <span class="pf-v6-c-form-control"><textarea id="q" placeholder="Ask a question…" aria-label="Question" required></textarea></span>
+      <button class="pf-v6-c-button pf-m-primary" id="send" type="submit"><span class="pf-v6-c-button__text">Send</span></button>
+    </form>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const ICON = {
+  check: 'M16 1C7.729 1 1 7.729 1 16s6.729 15 15 15 15-6.729 15-15S24.271 1 16 1Zm7.795 11.795-8.646 8.646c-.317.317-.733.475-1.149.475s-.832-.158-1.149-.475l-4.646-4.646a1.126 1.126 0 0 1 1.591-1.591l4.205 4.205 8.205-8.205a1.126 1.126 0 0 1 1.591 1.591Z',
+  danger: 'M16 1C7.7 1 1 7.7 1 16s6.7 15 15 15 15-6.7 15-15S24.3 1 16 1Zm-1.5 7h3v10h-3Zm1.5 16a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z',
+  warn: 'M16 2 1 29h30L16 2Zm-1.5 9h3v9h-3Zm1.5 15a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z',
+  info: 'M16 1C7.7 1 1 7.7 1 16s6.7 15 15 15 15-6.7 15-15S24.3 1 16 1Zm1.5 23h-3V13h3Zm-1.5-13.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z',
+  user: 'M16 16a7 7 0 1 0 0-14 7 7 0 0 0 0 14Zm0 3c-6 0-13 3-13 8v3h26v-3c0-5-7-8-13-8Z',
+  skip: 'M3 6l12 10L3 26Zm14 0 12 10-12 10Z'
+};
+const svg = (d, size) => '<svg class="pf-v6-svg" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true" width="' + (size || '1em') + '" height="' + (size || '1em') + '"><path d="' + d + '"/></svg>';
+const spinner = '<svg class="pf-v6-c-spinner pf-m-sm" role="progressbar" viewBox="0 0 100 100" aria-label="Running"><circle class="pf-v6-c-spinner__path" cx="50" cy="50" r="45" fill="none"/></svg>';
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function label(text, color, icon, extra) {
+  return '<span class="pf-v6-c-label pf-m-compact' + (color ? ' pf-m-' + color : '') + (extra ? ' ' + extra : '') + '"><span class="pf-v6-c-label__content">' +
+    (icon ? '<span class="pf-v6-c-label__icon">' + svg(icon) + '</span>' : '') + '<span class="pf-v6-c-label__text">' + esc(text) + '</span></span></span>';
+}
+function md(text) {
+  const blocks = String(text || '').split(/```/);
+  return blocks.map((b, i) => {
+    if (i % 2 === 1) { const nl = b.indexOf('\n'); return '<pre><code>' + esc(nl >= 0 ? b.slice(nl + 1) : b) + '</code></pre>'; }
+    const lines = esc(b).split('\n'); let html = '', list = false, table = [];
+    const inline = s => s.replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[\s(])\*([^*\s][^*]*?)\*(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>')
+      .replace(/(^|[\s(])_([^_\s][^_]*?)_(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>');
+    const flushTable = () => { if (!table.length) return; const rows = table.filter(r => !/^\|[\s:|-]+\|$/.test(r));
+      html += '<table>' + rows.map((r, j) => '<tr>' + r.split('|').slice(1, -1).map(c => (j ? '<td>' : '<th>') + inline(c.trim()) + (j ? '</td>' : '</th>')).join('') + '</tr>').join('') + '</table>'; table = []; };
+    for (const ln of lines) {
+      if (/^\s*\|.*\|\s*$/.test(ln)) { if (list) { html += '</ul>'; list = false; } table.push(ln.trim()); continue; }
+      flushTable();
+      if (/^\s*[-*•] /.test(ln)) { if (!list) { html += '<ul>'; list = true; } html += '<li>' + inline(ln.replace(/^\s*[-*•] /, '')) + '</li>'; continue; }
+      if (list) { html += '</ul>'; list = false; }
+      if (/^#{1,4} /.test(ln)) { html += '<p><strong>' + inline(ln.replace(/^#+ /, '')) + '</strong></p>'; continue; }
+      if (ln.trim()) html += '<p>' + inline(ln) + '</p>';
+    }
+    flushTable(); if (list) html += '</ul>';
+    return html;
+  }).join('');
+}
+
+// reads a JSON answer; a gateway page (timeout, proxy error) becomes a readable message
+async function readJson(r) {
+  const text = await r.text();
+  try { return JSON.parse(text); } catch (e) {
+    const hint = (r.status === 504 || r.status === 502 || r.status === 0 || !text)
+      ? 'the answer took too long and the OpenShift route or proxy closed the request (HTTP ' + (r.status || 'no answer') +
+        '). Check the route timeout annotation and --upstream-timeout of the oauth-proxy (guide, step 10), then ask again.'
+      : 'unexpected answer from the server (HTTP ' + r.status + ').';
+    return {error: hint};
+  }
+}
+let history = [], progress = null, migrations = [], agentInfo = {}, modelName = '';
+const AGENT = {planning: ['Smart Planning', 'teal'], migration: ['Migration', 'blue'], reporting: ['Reporting', 'yellow'],
+  training: ['Training & Prediction', 'purple'], casc: ['Configuration as Code', 'green'],
+  testing: ['Smoke & regression tests', 'orangered'], copilot: ['AAP Odyssey', null]};
+const TRY = {planning: 'Show the patch releases of the installed AAP', migration: 'What will fail and why?',
+  reporting: 'Show the reports of all migrations', training: 'Which objects have the highest risk?',
+  casc: 'Generate the CasC of the migration', testing: 'Generate the smoke test suite'};
+const agentLabel = id => label((AGENT[id] || [id])[0] + (id === 'copilot' ? '' : ' agent'), (AGENT[id] || [])[1]);
+
+// welcome card: the journey in five phases, the agent of every stage (same colours as the journey)
+const FLOW = [
+  ['Pre-migration', 'Predict and prepare', [['Pre-migration analysis', 'migration'], ['Target patch level', 'planning', 1],
+    ['Platform smoke test (before)', 'testing', 1], ['Review the plan and fix AAP 2.4', 'migration', 1]]],
+  ['Migration', 'Move with guardrails', [['Dry run', 'migration'], ['Approve and start', 'migration', 1],
+    ['Migration', 'migration'], ['Restore credential secrets', 'migration', 1]]],
+  ['Post-migration', 'Verify the platform', [['Post-migration verification', 'reporting', 1], ['Platform smoke test (after)', 'testing', 1]]],
+  ['Learn', 'Smarter every migration', [['Train the risk model', 'training'], ['Predict the next migration', 'training']]],
+  ['Configuration as Code', 'Keep the result as code', [['Generate the CasC', 'casc', 1]]]];
+function flowHtml() {
+  let n = 0;
+  return FLOW.map(([phase, why, steps]) => {
+    const first = n + 1;
+    const items = steps.map(([title, agent, human]) => { n++; return '<li><span class="n">' + n + '</span><span>' + esc(title) +
+      (human ? ' <span class="h" title="Human in the loop">' + svg(ICON.user, '.85em') + '</span>' : '') + '</span></li>'; }).join('');
+    const agents = [...new Set(steps.map(s => s[1]))].map(agentLabel).join('');
+    return '<div class="ph"><h3>' + esc(phase) + '</h3><div class="range">' + esc(why) + ' · ' +
+      (n > first ? 'stages ' + first + '–' + n : 'stage ' + n) + '</div><ol>' + items + '</ol><div class="ag">' + agents + '</div></div>';
+  }).join('');
+}
+const store = {get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* not available */ } }};
+function showWelcome(on) {
+  $('#welcome').hidden = !on;
+  $('#empty').style.display = (on || $('#thread').children.length) ? 'none' : '';
+  if (on) $('#chat').scrollTop = 0;
+}
+function closeWelcome() { store.set('odyssey.welcome.closed', '1'); showWelcome(false); }
+
+// a stage with a human in the loop can be confirmed (or reopened) by the person: same request as in the chat
+function markButton(s) {
+  if (!s.human || !$('#mig').value) return '';
+  const marked = (s.detail || '').includes('marked as done');
+  if (s.status === 'done' && !marked) return '';
+  const q = marked ? 'Reopen "' + s.title + '"' : 'Mark "' + s.title + '" as done';
+  return '<button class="pf-v6-c-button pf-m-link pf-m-inline pf-m-small mark" type="button" data-try="' + esc(q) + '">' +
+    (marked ? 'Reopen' : 'Mark as done') + '</button>';
+}
+
+function stepHtml(s) {
+  const mod = {done: 'pf-m-success', running: 'pf-m-current', current: 'pf-m-current', failed: 'pf-m-danger',
+               reminder: 'pf-m-warning', skipped: 'pf-m-pending', pending: 'pf-m-pending'}[s.status] || 'pf-m-pending';
+  const icon = {done: svg(ICON.check), running: spinner, current: svg(ICON.info), failed: svg(ICON.danger),
+                reminder: svg(ICON.warn), skipped: svg(ICON.skip)}[s.status] || '';
+  const labels = [label(s.phase, null), agentLabel(s.agent)];
+  if (s.human) labels.push(label('Human in the loop', 'orange', ICON.user));
+  if (s.effect === 'writes target AAP') labels.push(label('Writes the target AAP', 'red'));
+  else if (s.effect === 'test objects') labels.push(label('Test objects only', 'red', null, 'pf-m-outline'));
+  else if (s.effect === 'AI') labels.push(label('AI', 'purple'));
+  else if (!s.human) labels.push(label('Read-only', 'green'));
+  if (s.optional) labels.push(label('Optional', null, null, 'pf-m-outline'));
+  const state = {done: 'Done', running: 'Running', current: 'Next', failed: 'Failed', reminder: 'To do (human)', skipped: 'Skipped'}[s.status];
+  return '<li class="pf-v6-c-progress-stepper__step ' + mod + '" role="listitem" aria-label="' + esc(s.title + ', ' + (state || 'pending')) + '">' +
+    '<div class="pf-v6-c-progress-stepper__step-connector"><span class="pf-v6-c-progress-stepper__step-icon">' + icon + '</span></div>' +
+    '<div class="pf-v6-c-progress-stepper__step-main"><div class="pf-v6-c-progress-stepper__step-title">' + esc(s.title) +
+    (state ? ' <span class="step-detail">· ' + state + '</span>' : '') + '</div>' +
+    '<div class="pf-v6-c-progress-stepper__step-description">' + esc(s.description) +
+    (s.detail ? '<div class="step-detail">' + esc(s.detail) + '</div>' : '') +
+    '<div class="step-labels">' + labels.join('') + '</div>' + markButton(s) + '</div></div></li>';
+}
+
+function whereHtml(p) {
+  if (p.template) {
+    const n = p.next || {};
+    return '<div class="pf-v6-c-alert pf-m-inline pf-m-info" aria-live="polite"><div class="pf-v6-c-alert__icon">' + svg(ICON.info) + '</div>' +
+      '<p class="pf-v6-c-alert__title">No migration yet — start with the ' + esc(n.title || 'Pre-migration analysis') + '</p>' +
+      '<div class="pf-v6-c-alert__description">The full journey is shown below. Give your migration a name, for example ' +
+      '<code>' + esc(p.example_migration_id) + '</code>, and ask AAP Odyssey: ' +
+      '<button class="pf-v6-c-button pf-m-link pf-m-inline" type="button" data-try="Scan AAP 2.4 for migration readiness as &quot;' + esc(p.example_migration_id) + '&quot;">' +
+      'Scan AAP 2.4 for migration readiness as "' + esc(p.example_migration_id) + '"</button></div></div>';
+  }
+  const n = p.next || {};
+  const human = !!n.human;
+  const kind = n.status === 'failed' ? 'danger' : human ? 'warning' : n.stage ? 'info' : 'success';
+  const icon = {danger: ICON.danger, warning: ICON.user, info: ICON.info, success: ICON.check}[kind];
+  const head = n.stage ? ((n.status === 'running' ? 'In progress: ' : n.status === 'failed' ? 'Failed: ' : 'Next: ') + n.title) : n.title;
+  const labels = [label('Stage ' + p.position + ' of ' + p.total, 'blue'), label(p.current_phase, null)];
+  if (n.agent) labels.push(agentLabel(n.agent));
+  labels.push(human ? label('Human in the loop: ' + n.human, 'orange', ICON.user) : label('Automated', 'green'));
+  (n.optional_before || []).forEach(t => labels.push(label('Optional before: ' + t, null, null, 'pf-m-outline')));
+  (p.reminders || []).forEach(r => labels.push(label('Reminder: ' + r, 'orange', ICON.warn, 'pf-m-outline')));
+  return '<div class="pf-v6-c-alert pf-m-inline pf-m-' + kind + '" aria-live="polite"><div class="pf-v6-c-alert__icon">' + svg(icon) + '</div>' +
+    '<p class="pf-v6-c-alert__title">' + esc(p.migration_id) + ' — ' + esc(head) + '</p>' +
+    '<div class="pf-v6-c-alert__description">' + (n.detail ? esc(n.detail) + '. ' : '') + 'How: ' + esc(n.how || '') +
+    '<div class="labels">' + labels.join('') + '</div></div></div>';
+}
+
+function render(p) {
+  progress = p;
+  if (!p) { $('#stepper').innerHTML = ''; $('#where').innerHTML = ''; return; }
+  $('#stepper').innerHTML = p.stages.map(stepHtml).join('');
+  $('#journey-sub').textContent = p.template ? 'No migration yet · ' + p.total + ' stages'
+    : p.migration_id + ' · stage ' + p.position + ' of ' + p.total;
+  $('#where').innerHTML = whereHtml(p);
+}
+
+function footHtml(p) {
+  if (!p) return '';
+  const n = p.next || {};
+  return '<div class="foot">' + label('Stage ' + p.position + '/' + p.total, 'blue') +
+    '<span>' + esc(n.stage ? ((n.status === 'running' ? 'In progress: ' : 'Next: ') + n.title) : n.title) + '</span>' +
+    (n.agent ? agentLabel(n.agent) : '') +
+    (n.human ? label('Human in the loop', 'orange', ICON.user) : label('Automated', 'green')) + '</div>';
+}
+
+function activityHtml(events) {
+  const ev = (events || []).filter(e => ['handoff', 'tool_call', 'agent_result', 'llm_error'].includes(e.type));
+  if (!ev.length) return '';
+  const name = id => (AGENT[id] || [id])[0] + (id === 'copilot' ? '' : ' agent');
+  const args = a => { const s = Object.entries(a || {}).filter(([, v]) => v !== '' && v != null).map(([k, v]) => k + '=' + JSON.stringify(v)).join(', ');
+    return s ? '(' + esc(s.length > 80 ? s.slice(0, 80) + '…' : s) + ')' : '()'; };
+  const items = ev.map(e => {
+    if (e.type === 'handoff') return '<li>' + label('AAP Odyssey', null) + '<span class="arrow">→</span>' + agentLabel(e.agent) +
+      '<span>' + esc(e.via === 'llm' ? 'delegated by the LLM: ' : 'routed: ') + esc(e.task || '') + '</span></li>';
+    if (e.type === 'tool_call') return '<li>' + agentLabel(e.agent) + '<span class="arrow">▸</span><code>' + esc(e.tool) + args(e.args) + '</code></li>';
+    if (e.type === 'agent_result') return '<li>' + agentLabel(e.agent) + '<span class="arrow">→</span>' + label('AAP Odyssey', null) +
+      '<span>' + esc(e.summary || 'answer') + '</span></li>';
+    return '<li>' + label('LLM unavailable', 'red') + '<span>' + esc(e.error || '') + ' — deterministic answer</span></li>';
+  });
+  const agents = [...new Set(ev.filter(e => e.agent && e.agent !== 'copilot').map(e => name(e.agent)))];
+  return '<details class="activity"><summary>Agent activity · ' + (agents.join(', ') || 'AAP Odyssey') + ' · ' + ev.length +
+    ' steps</summary><ul class="act">' + items.join('') + '</ul></details>';
+}
+
+function add(role, text, extra, agent) {
+  $('#empty').style.display = 'none';
+  if (!$('#welcome').hidden) closeWelcome();
+  const d = document.createElement('div'); d.className = 'msg' + (role === 'user' ? ' me' : '');
+  d.innerHTML = '<div class="who">' + (role === 'user' ? 'You' : 'AAP Odyssey' + (agent && agent !== 'copilot' ? ' · answered by ' + agentLabel(agent) : '')) +
+    '</div><div class="body">' + md(text) + (extra || '') + '</div>';
+  $('#thread').appendChild(d); $('#chat').scrollTop = $('#chat').scrollHeight;
+  return d;
+}
+
+const reportLink = (mid, f) => 'report?migration_id=' + encodeURIComponent(mid) + '&file=' + encodeURIComponent(f);
+const dl = f => 'api/download?file=' + encodeURIComponent(f);
+
+function reportsView(v) {
+  const mid = v.migration_id;
+  const src = x => x.source === 'Toolkit' ? label('Toolkit', 'blue') : x.source === 'Test suite' ? label('Test suite (run by a human)', 'orangered', null, 'pf-m-outline')
+    : (x.agent ? agentLabel(x.agent) : label(x.source, 'purple'));
+  let html = '';
+  const row = x => '<div class="report"><a target="_blank" rel="noopener" href="' + reportLink(mid, x.file) + '">' + esc(x.title) + '</a>' + src(x) +
+      '<div class="meta">' + esc(x.filename) + ' · generated ' + esc((x.generated || '').replace('T', ' ').slice(0, 16)) + ' UTC</div></div>';
+  const isPatch = x => x.group === 'patches';
+  for (const phase of v.phases || []) {
+    const items = (v.reports || []).filter(x => x.phase === phase && !isPatch(x));
+    if (!items.length) continue;
+    html += '<div class="phase">' + esc(phase) + ' phase</div>' + items.map(row).join('');
+  }
+  const patches = (v.reports || []).filter(isPatch);
+  if (patches.length) html += '<details class="section"><summary class="phase">Patch plans (' + patches.length + ')</summary>' +
+    patches.map(row).join('') + '</details>';
+  const bundle = (title, items, kind) => items.length ? '<details class="section"><summary class="phase">' + title + ' (' + items.length + ')</summary>' + items.map(c =>
+    '<div class="report"><strong>' + esc(c.title) + '</strong>' + agentLabel(kind) +
+    (c.errors ? label(c.errors + ' validation errors', 'red') : label('validated', 'green')) +
+    (c.tests ? label(c.tests + ' tests', null) : '') +
+    (c.zip ? ' <a href="' + dl(c.zip) + '">Download zip</a>' : '') +
+    '<div class="meta">' + esc(mid) + '__' + (kind === 'casc' ? 'casc' : 'smoke-tests') + '__' + esc(c.stamp) + '.zip' + (c.source_type ? ' · source ' + esc(c.source_type) : '') + '</div>' +
+    '<details><summary>' + c.files.length + ' files</summary>' + c.files.map(f => '<a target="_blank" rel="noopener" href="' + reportLink(mid, f) + '">' + esc(f.split('/').slice(2).join('/')) + '</a>').join('') + '</details></div>').join('') + '</details>' : '';
+  html += bundle('Configuration as Code', v.casc || [], 'casc') + bundle('Smoke & regression test suites', v.smoke || [], 'testing');
+  return html ? '<div class="view">' + html + '</div>' : '';
+}
+
+function migrationsView(v) {
+  const rows = (v.items || []).map(m => '<tr><td><strong>' + esc(m.id) + '</strong></td><td>' + esc((m.updated || '').slice(0, 16).replace('T', ' ')) + '</td>' +
+    '<td>' + (m.position ? esc(m.position + '/' + m.total + ' · ' + m.phase) : '') + '</td><td>' + esc(m.next || '') +
+    (m.human ? ' ' + label('Human', 'orange', ICON.user) : '') + '</td><td>' + esc(m.reports ?? '') + '</td>' +
+    '<td><button class="pf-v6-c-button pf-m-link pf-m-inline" type="button" data-open="' + esc(m.id) + '">Open reports</button></td></tr>').join('');
+  return '<div class="view"><table><tr><th>Migration</th><th>Last activity</th><th>Stage</th><th>Next</th><th>Reports</th><th></th></tr>' + rows + '</table></div>';
+}
+
+function smokeView(v) {
+  let html = '<div class="view">';
+  if (v.suite) {
+    html += '<div class="phase">Customize before running (human in the loop)</div><table><tr><th>File</th><th>Variable</th><th>What to set</th></tr>' +
+      v.suite.customization.map(c => '<tr><td><code>' + esc(c.file) + '</code></td><td><code>' + esc(c.variable) + '</code></td><td>' + esc(c.why) + '</td></tr>').join('') + '</table>';
+    if (v.review) html += '<div class="phase">AI review of the suite</div>' + md(v.review);
+    if (v.zip) html += '<p><a class="pf-v6-c-button pf-m-secondary pf-m-small" href="' + dl(v.zip) + '"><span class="pf-v6-c-button__text">Download the suite (zip)</span></a></p>';
+  }
+  const res = v.results || {};
+  if ((res.runs || []).length) {
+    html += '<div class="phase">Uploaded results</div><table><tr><th>Phase</th><th>Finished</th><th>Passed</th><th>Failed</th><th></th></tr>' +
+      res.runs.map(r => '<tr><td>' + esc(r.phase) + '</td><td>' + esc((r.finished || '').slice(0, 16).replace('T', ' ')) + '</td><td>' + esc((r.summary || {}).passed) +
+        '</td><td>' + esc((r.summary || {}).failed) + '</td><td>' + (r.passed ? label('passed', 'green') : label('failed', 'red')) + '</td></tr>').join('') + '</table>';
+    if ((res.regressions || []).length) html += '<p><strong>Changes against the baseline:</strong> ' + res.regressions.map(x => esc(x.name + ': ' + x.before + ' → ' + x.now)).join('; ') + '</p>';
+  }
+  if ($('#mig').value) html += '<div class="upload"><label class="pf-v6-c-button pf-m-primary pf-m-small"><span class="pf-v6-c-button__text">Upload results</span>' +
+    '<input type="file" accept=".json,application/json" hidden data-upload="1"></label><span class="step-detail">reports/smoke-results.json written by the suite</span></div>';
+  else html += '<p class="step-detail">No migration selected: the results (reports/smoke-results.json) can be uploaded once a migration exists, to compare them with the baseline.</p>';
+  return html + '</div>';
+}
+
+function viewHtml(v) {
+  if (!v) return '';
+  if (v.type === 'reports') return reportsView(v);
+  if (v.type === 'migrations') return migrationsView(v);
+  if (v.type === 'smoke') return smokeView(v);
+  if (v.type === 'releases' && v.file) return '<p><a target="_blank" rel="noopener" href="' + reportLink($('#mig').value, v.file) + '">Open the saved patch plan</a> (also in Reports, pre-migration phase)</p>';
+  return '';
+}
+
+async function uploadResults(file) {
+  const mid = $('#mig').value;
+  try {
+    const text = await file.text();
+    const r = await fetch('api/smoke-results?migration_id=' + encodeURIComponent(mid), {method: 'POST',
+      headers: {'Content-Type': 'application/json'}, body: text});
+    const d = await readJson(r);
+    if (!r.ok) throw new Error(d.error || r.statusText);
+    if (d.progress) render(d.progress);
+    add('assistant', 'Smoke test results saved (`' + d.saved + '`). The journey is updated.', footHtml(d.progress), 'testing');
+  } catch (e) { add('assistant', 'Upload failed: ' + e.message); }
+}
+
+async function loadAgents() {
+  try {
+    const d = await (await fetch('api/agents')).json();
+    $('#agents').innerHTML = d.agents.map(a => '<div class="agent"><h3>' + agentLabel(a.id) + '<span class="step-detail">' + esc(a.phase) + '</span></h3>' +
+      '<p>' + esc(a.role) + '</p><div class="small"><strong>What it can do</strong> <span class="step-detail">(tool name in grey)</span><ul class="caps">' +
+      (a.capabilities || a.tools.map(t => ({tool: t, label: t}))).map(c => '<li>' + esc(c.label) + ' <code class="tool">' + esc(c.tool) + '</code></li>').join('') + '</ul></div>' +
+      '<div class="small"><strong>May write:</strong> ' + esc(a.writes) + '</div>' +
+      '<button class="pf-v6-c-button pf-m-link pf-m-inline pf-m-small" type="button" data-try="' + esc(TRY[a.id] || '') + '"><span class="pf-v6-c-button__text">Try: ' + esc(TRY[a.id] || '') + '</span></button></div>').join('');
+  } catch (e) { $('#agents').textContent = 'Agents not available: ' + e.message; }
+}
+
+async function loadMigrations(keepSelection) {
+  const r = await fetch('api/migrations'); const d = await r.json();
+  migrations = d.items || (d.migrations || []).map(id => ({id}));
+  const current = keepSelection ? ($('#mig').value || d.default) : (d.default || (migrations[0] || {}).id);
+  const fmt = u => u ? ' — updated ' + u.slice(0, 16).replace('T', ' ') : '';
+  $('#mig').innerHTML = migrations.length
+    ? migrations.map(m => '<option value="' + esc(m.id) + '"' + (m.id === current ? ' selected' : '') + '>' + esc(m.id + fmt(m.updated)) + '</option>').join('')
+    : '<option value="">none yet: start a scan</option>';
+  modelName = d.llm || '';
+  $('#sub').textContent = 'AAP Migration on Red Hat OpenShift AI · Model: ' + (d.llm || 'none (automatic answers)');
+}
+
+async function loadProgress(refresh) {
+  const mid = $('#mig').value;
+  try {
+    const r = await fetch('api/progress?migration_id=' + encodeURIComponent(mid || '') + (refresh ? '&refresh=1' : ''));
+    if (r.ok) render(await r.json());
+  } catch (e) { /* keep the last view */ }
+}
+
+async function ask(q) {
+  add('user', q); $('#send').disabled = true;
+  try {
+    const r = await fetch('api/chat', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({migration_id: $('#mig').value, message: q, history})});
+    const d = await readJson(r);
+    if (!r.ok) throw new Error(d.error || r.statusText);
+    const tools = (d.events || []).filter(e => e.type === 'tool_call').map(e => e.tool);
+    const files = (d.view && d.view.type === 'smoke') ? '' : (d.files || []).map(f => '<div class="files"><a href="' + dl(f) + '">Download ' + esc(f.split('/').pop()) + '</a></div>').join('');
+    const llmErr = (d.events || []).some(e => e.type === 'llm_error');
+    const who = '<div class="labels">' + (d.llm ? label('Written with the LLM' + (modelName ? ': ' + modelName : ''), 'purple')
+      : label(llmErr ? 'Automatic answer: the LLM did not answer' : 'Automatic answer (no LLM)', llmErr ? 'orange' : null, null, 'pf-m-outline')) + '</div>';
+    add('assistant', d.answer, who + viewHtml(d.view) + files + activityHtml(d.events) + footHtml(d.progress), d.agent);
+    history.push({role: 'user', content: q}, {role: 'assistant', content: d.answer});
+    if (d.migration_id && d.migration_id !== $('#mig').value) { await loadMigrations(false); $('#mig').value = d.migration_id; }
+    else if (tools.some(t => /scan|start_/.test(t))) await loadMigrations(true);
+    if (d.progress) render(d.progress);
+  } catch (e) { add('assistant', 'Error: ' + e.message); }
+  $('#send').disabled = false;
+}
+
+$('#form').addEventListener('submit', e => { e.preventDefault(); const q = $('#q').value.trim(); if (q) { $('#q').value = ''; ask(q); } });
+$('#q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#form').requestSubmit(); } });
+document.querySelectorAll('#chips button').forEach(b => b.addEventListener('click', () => ask(b.textContent.trim())));
+$('#reports').addEventListener('click', () => ask($('#mig').value ? 'Show the reports of this migration' : 'Show the reports of all migrations'));
+$('#refresh').addEventListener('click', async () => { await loadMigrations(true); await loadProgress(true); });
+$('#mig').addEventListener('mousedown', () => loadMigrations(true).catch(() => {}));
+$('#mig').addEventListener('change', async () => {
+  history = [];
+  add('assistant', 'Switched to migration **' + $('#mig').value + '**.');
+  await loadProgress(true);
+});
+document.querySelectorAll('.pf-v6-c-tabs__link').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.pf-v6-c-tabs__link').forEach(x => { const on = x === b;
+    x.setAttribute('aria-selected', on); x.parentElement.classList.toggle('pf-m-current', on); $('#' + x.dataset.tab).hidden = !on; });
+}));
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-try]'); if (t && t.dataset.try) return ask(t.dataset.try);
+  const o = e.target.closest('[data-open]');
+  if (o) { $('#mig').value = o.dataset.open; history = []; await loadProgress(true); return ask('Show the reports of this migration'); }
+});
+document.addEventListener('change', e => { if (e.target.matches('[data-upload]') && e.target.files[0]) uploadResults(e.target.files[0]); });
+setInterval(() => {
+  const running = progress && progress.stages.some(s => s.status === 'running');
+  loadProgress(false);
+  if (running) loadMigrations(true).catch(() => {});
+}, 30000);
+$('#flow').innerHTML = flowHtml();
+$('#legend').innerHTML = '<span class="h">' + svg(ICON.user) + '</span> a person acts (human in the loop) · coloured labels: the agent that owns the stages';
+$('#welcome-close').addEventListener('click', closeWelcome);
+$('#welcome-start').addEventListener('click', closeWelcome);
+$('#how').addEventListener('click', () => showWelcome($('#welcome').hidden));
+showWelcome(!store.get('odyssey.welcome.closed'));
+loadAgents();
+loadMigrations(false).then(() => loadProgress(true)).catch(e => add('assistant', 'Error: ' + e.message));
+</script>
+</body>
+</html>

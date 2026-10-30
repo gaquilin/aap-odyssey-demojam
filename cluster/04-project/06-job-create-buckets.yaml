@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-buckets
+  namespace: aap-migration-ai
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: create-buckets
+          image: registry.access.redhat.com/ubi9/python-312:latest
+          envFrom:
+            - secretRef:
+                name: s4-credentials
+          command: ["/bin/bash", "-ec"]
+          args:
+            - |
+              pip install --quiet --no-cache-dir boto3
+              python3 - <<'EOF'
+              import boto3, os
+              s3 = boto3.client("s3", endpoint_url="http://s4.aap-migration-ai.svc.cluster.local:7480",
+                                aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+                                aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+                                region_name="us-east-1")
+              existing = {b["Name"] for b in s3.list_buckets().get("Buckets", [])}
+              for bucket in ("aap-migration-data", "pipeline-artifacts"):
+                  if bucket not in existing:
+                      s3.create_bucket(Bucket=bucket)
+                  print("bucket ready:", bucket)
+              EOF
