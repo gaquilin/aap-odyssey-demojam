@@ -67,7 +67,9 @@
 
 ## 1. Introduction
 
-An AI layer on Red Hat OpenShift AI for the migration from Red Hat Ansible Automation Platform 2.4 to a newer release (2.5, 2.6, 2.7), built on the `aap-bridge` Migration Toolkit. It turns a migration into a guided, measurable process: it predicts what will fail before anything is written, runs or follows the migration with guardrails and a human in the loop, proves that the target platform works, and learns from every migration to forecast the next one.
+**AAP Odyssey** guides the migration of Red Hat Ansible Automation Platform from 2.4 to a newer release (2.5, 2.6 or 2.7). It runs on Red Hat OpenShift AI and builds on the `aap-bridge` Migration Toolkit, which performs the migration itself.
+
+A migration moves everything a customer has automated, stale data and objects that will fail included, through a long sequence of manual steps. AAP Odyssey turns it into a guided, measurable process: it predicts what will fail before anything is written, runs the migration through one pipeline with guardrails and a person approving every write, proves that the target platform works, and learns from every migration to forecast the next one.
 
 - **AAP Odyssey** — one page for the whole migration: a welcome card with the workflow, the journey (13 stages, the agent that owns each one, the points where a person must act) and a chat with an **orchestrator** that hands every request to one of **six specialist agents** and shows how they worked together.
 - **During the migration** — OpenShift AI pipelines in two kinds. Pipelines that write nothing to the target AAP: the plan, in which the migration agent analyses the source and writes the runbook, and the dry run, which runs the runbook up to a simulated import. The migration pipeline, which writes the target AAP: a person approves it and starts it from the dashboard (or runs the migration by hand and the pipeline collects the results). Every object is migrated once.
